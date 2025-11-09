@@ -110,9 +110,30 @@ jobs:
           docker pull ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest
           docker run -d -p 5000:5000 --name cdn-checker ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest
           
-          # Wait for container to be ready
-          echo "Waiting for container to start..."
-          sleep 10
+          # Wait for container to be healthy
+          echo "Waiting for container to be ready..."
+          max_attempts=30
+          attempt=0
+          while [ $attempt -lt $max_attempts ]; do
+            if docker inspect cdn-checker --format='{{.State.Health.Status}}' 2>/dev/null | grep -q "healthy"; then
+              echo "Container is healthy!"
+              break
+            fi
+            if [ $attempt -eq 0 ]; then
+              echo -n "Waiting"
+            else
+              echo -n "."
+            fi
+            sleep 2
+            attempt=$((attempt + 1))
+          done
+          echo ""
+          
+          if [ $attempt -eq $max_attempts ]; then
+            echo "Container failed to become healthy in time"
+            docker logs cdn-checker
+            exit 1
+          fi
           
           # Test health endpoint
           echo "Testing application health..."
