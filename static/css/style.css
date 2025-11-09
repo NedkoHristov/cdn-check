@@ -128,13 +128,21 @@ header h1 {
 }
 
 .error-message {
-    background: #fee;
+    background: linear-gradient(135deg, #fee 0%, #fdd 100%);
     color: var(--error-color);
-    padding: 16px 20px;
+    padding: 18px 24px;
     border-radius: 12px;
     margin-bottom: 20px;
     border-left: 4px solid var(--error-color);
     animation: shake 0.5s ease;
+    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.1);
+    font-weight: 500;
+    line-height: 1.6;
+}
+
+.error-message::before {
+    content: '⚠️ ';
+    margin-right: 8px;
 }
 
 @keyframes shake {

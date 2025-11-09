@@ -35,10 +35,10 @@ document.addEventListener('DOMContentLoaded', function() {
         await checkCDN(url);
     });
 
-    // URL validation function
+    // URL validation function - improved to accept http/https
     function isValidUrl(url) {
-        // Allow URLs with or without protocol, with or without www
-        const pattern = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$/;
+        // Allow URLs with or without protocol (http/https), with or without www, with optional port and path
+        const pattern = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*(:[0-9]{1,5})?(\/.*)?$/;
         return pattern.test(url);
     }
 
@@ -79,7 +79,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Error:', error);
-            showError(error.message || 'An error occurred while checking the CDN. Please try again.');
+            // Display user-friendly error message
+            if (error.message.includes('Failed to fetch')) {
+                showError('Unable to connect to the CDN checker service. Please check your internet connection and try again.');
+            } else if (error.message.includes('Rate limit')) {
+                showError('Too many requests. Please wait a moment and try again.');
+            } else {
+                showError(error.message || 'An error occurred while checking the CDN. Please try again.');
+            }
         } finally {
             // Hide loading state
             checkBtn.disabled = false;
@@ -198,6 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'Google Cloud CDN': '🔍',
             'Incapsula': '🛡️',
             'BunnyCDN': '🐰',
+            'SiteGround CDN': '🌐',
             'None detected': '❌'
         };
         return icons[cdnName] || '🚀';

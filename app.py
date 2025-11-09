@@ -6,6 +6,10 @@ import socket
 import dns.resolver
 import re
 from datetime import datetime
+import urllib3
+
+# Suppress SSL warnings for sites with invalid certificates
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 app = Flask(__name__)
 limiter = Limiter(key_func=get_remote_address, app=app, default_limits=["200/day", "50/hour"])
@@ -27,38 +31,85 @@ CDNS = {
 }
 
 def validate_url(url):
-    """Validate and normalize URL"""
+    """Validate and normalize URL with improved handling"""
     url = url.strip()
+    
+    # Remove trailing slashes
+    url = url.rstrip('/')
+    
+    # Add protocol if missing
     if not url.startswith(('http://', 'https://')):
         url = 'https://' + url
-    if not re.match(r'^https?://[a-zA-Z0-9]([a-zA-Z0-9\-\.]+)?[a-zA-Z0-9]$', url):
-        return None
-    return url
+    
+    # Extract domain for validation
+    domain_pattern = r'^https?://([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)*[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?(\:[0-9]+)?(/.*)?$'
+    if not re.match(domain_pattern, url):
+        return None, 'Invalid URL format. Please enter a valid domain (e.g., example.com or https://example.com)'
+    
+    return url, None
 
 def check_cdn(url):
-    """Main CDN detection logic"""
+    """Main CDN detection logic with improved error handling"""
     result = {'url': url, 'cdn_detected': None, 'confidence': 0, 'evidence': [], 
               'ip_address': None, 'cnames': [], 'headers': {}, 'timestamp': datetime.now().isoformat()}
     
-    url = validate_url(url)
-    if not url:
-        result['error'] = 'Invalid URL format'
+    # Validate URL
+    validated_url, error = validate_url(url)
+    if error:
+        result['error'] = error
         return result
     
+    url = validated_url
+    result['url'] = url
+    
     try:
-        # Get headers
-        headers = requests.head(url, timeout=10, allow_redirects=True).headers
-        result['headers'] = dict(headers)
+        # Extract domain from URL
+        domain = url.replace('https://', '').replace('http://', '').split('/')[0].split(':')[0]
         
-        # Get IP
-        domain = url.replace('https://', '').replace('http://', '').split('/')[0]
-        result['ip_address'] = socket.gethostbyname(domain)
+        # Get headers with better error handling
+        try:
+            response = requests.head(url, timeout=10, allow_redirects=True, verify=True)
+            result['headers'] = dict(response.headers)
+            headers = response.headers
+        except requests.exceptions.SSLError:
+            # Try without SSL verification if certificate is invalid
+            try:
+                response = requests.head(url, timeout=10, allow_redirects=True, verify=False)
+                result['headers'] = dict(response.headers)
+                headers = response.headers
+                result['evidence'].append('⚠️ SSL certificate verification failed - results may be inaccurate')
+            except Exception as e:
+                result['error'] = f'Unable to connect to website. The site may be down or unreachable.'
+                return result
+        except requests.exceptions.ConnectionError:
+            result['error'] = f'Connection failed. The website "{domain}" could not be reached. Please verify the URL is correct.'
+            return result
+        except requests.exceptions.Timeout:
+            result['error'] = f'Connection timeout. The website "{domain}" took too long to respond.'
+            return result
+        except requests.exceptions.TooManyRedirects:
+            result['error'] = 'Too many redirects. The website may have a redirect loop.'
+            return result
+        except requests.exceptions.RequestException as e:
+            result['error'] = f'Unable to check website. Please verify the URL is correct and accessible.'
+            return result
+        
+        # Get IP address
+        try:
+            result['ip_address'] = socket.gethostbyname(domain)
+        except socket.gaierror:
+            result['error'] = f'Domain "{domain}" does not exist or cannot be resolved.'
+            return result
+        except Exception as e:
+            result['evidence'].append('⚠️ Could not resolve IP address')
         
         # Get CNAMEs
         for d in [domain, 'www.' + domain if not domain.startswith('www.') else domain[4:]]:
             try:
                 result['cnames'].extend([str(r.target) for r in dns.resolver.resolve(d, 'CNAME')])
-            except:
+            except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.resolver.NoNameservers):
+                pass
+            except Exception:
                 pass
         
         # Detect CDN
@@ -83,7 +134,7 @@ def check_cdn(url):
             result['cdn_detected'] = 'None detected'
             
     except Exception as e:
-        result['error'] = str(e)
+        result['error'] = f'An unexpected error occurred while checking the website.'
     
     return result
 
