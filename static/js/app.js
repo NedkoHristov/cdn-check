@@ -7,6 +7,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorMessage = document.getElementById('error-message');
     const results = document.getElementById('results');
 
+    // Check if URL parameter exists and auto-check
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlParam = urlParams.get('url');
+    if (urlParam) {
+        urlInput.value = urlParam;
+        checkCDN(urlParam);
+    }
+
     // Form submission
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -36,6 +44,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Main CDN check function
     async function checkCDN(url) {
+        // Update URL in browser address bar
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.set('url', url);
+        window.history.pushState({}, '', newUrl);
+
         // Show loading state
         checkBtn.disabled = true;
         btnText.style.display = 'none';
