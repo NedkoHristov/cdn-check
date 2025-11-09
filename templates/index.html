@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CDN Checker - Check What CDN a Website Uses</title>
     <meta name="description" content="Free tool to detect and identify which CDN (Content Delivery Network) a website is using">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="static/css/style.css">
 </head>
 <body>
     <div class="container">
@@ -97,7 +97,7 @@
         <footer>
             <p>
                 Built to help identify CDN providers | 
-                <a href="https://github.com/yourusername/cdn-checker" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://github.com/NedkoHristov/cdn-check" target="_blank" rel="noopener">GitHub</a>
             </p>
             <p class="info-text">
                 This tool analyzes HTTP headers, DNS records, and server responses to identify CDN providers.
@@ -105,6 +105,6 @@
         </footer>
     </div>
 
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="static/js/app.js"></script>
 </body>
 </html>
