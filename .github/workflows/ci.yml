@@ -118,17 +118,11 @@ jobs:
 
       # 2. Semgrep - SAST code scanning
       - name: Run Semgrep security scan
-        uses: returntocorp/semgrep-action@v1
+        uses: semgrep/semgrep-action@v1
         with:
-          config: auto  # Automatic ruleset selection
-          generateSarif: true
-
-      - name: Upload Semgrep results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
-        with:
-          sarif_file: semgrep.sarif
-          category: 'semgrep-sast-ci'
+          publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
+        env:
+          SEMGREP_RULES: auto
 
       # 3. Trivy - Filesystem scanning (dependencies)
       - name: Run Trivy filesystem scanner
