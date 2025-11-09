@@ -5,6 +5,13 @@ on:
     branches: [ main, master, develop ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      run_security_scan:
+        description: 'Run security scan'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   lint-and-test:

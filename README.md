@@ -1,5 +1,11 @@
 # CDN Checker 🌐
 
+![CI Build](https://github.com/USERNAME/cdn-check/workflows/CI%20-%20Build%20and%20Test/badge.svg)
+![Docker Build](https://github.com/USERNAME/cdn-check/workflows/Build%20and%20Deploy%20Docker%20Image/badge.svg)
+![Docker Image Size](https://img.shields.io/docker/image-size/USERNAME/cdn-check/latest?label=docker%20image)
+![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 A simple, secure web tool to detect which Content Delivery Network (CDN) a website is using. Built with Python Flask and vanilla JavaScript.
 
 ## Live Demo
