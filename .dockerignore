@@ -1,0 +1,55 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Documentation (not needed in container)
+*.md
+CONTRIBUTING.md
+EXAMPLES.md
+QUICKSTART.md
+DEPLOYMENT.md
+SETUP.md
+PRODUCTION.md
+LICENSE
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Other deployment files
+Procfile
+runtime.txt

@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  cdn-checker:
+    build: .
+    container_name: cdn-checker
+    ports:
+      # Bind to localhost only for security when using Nginx proxy
+      - "127.0.0.1:5000:5000"
+      # Or expose publicly (not recommended without SSL):
+      # - "5000:5000"
+    restart: unless-stopped
+    environment:
+      # Number of Gunicorn workers: (2 × CPU_cores) + 1
+      - WORKERS=4
+    # Optional: resource limits
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '2.0'
+    #       memory: 1G
+    #     reservations:
+    #       cpus: '0.5'
+    #       memory: 256M
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5000/', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s

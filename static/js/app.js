@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
         hideResults();
 
         try {
-            const response = await fetch('/api/check', {
+            const response = await fetch('api/check', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
