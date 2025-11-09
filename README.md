@@ -6,6 +6,14 @@ A simple, secure web tool to detect which Content Delivery Network (CDN) a websi
 
 🔗 [View Demo](https://your-demo-url.com) *(Update with your actual demo URL)*
 
+## 📖 Documentation
+
+- **[PRODUCTION.md](PRODUCTION.md)** - Complete production deployment guide (Systemd + Docker)
+- **[DOCKER.md](DOCKER.md)** - Docker deployment quick reference
+- **[QUICKSTART.md](QUICKSTART.md)** - Get started in 5 minutes
+- **[EXAMPLES.md](EXAMPLES.md)** - API usage examples
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contributing guidelines
+
 ## Features
 
 - ✅ **CDN Detection** - Identifies 10+ major CDN providers including CloudFlare, AWS CloudFront, Fastly, Akamai, and more
@@ -74,54 +82,71 @@ http://localhost:5000
 
 ## Deployment
 
-### Using Gunicorn (Production)
+### Quick Start (Development)
 
 ```bash
-gunicorn -w 4 -b 0.0.0.0:8000 app:app
+python app.py
 ```
 
-### Using Docker
+Visit `http://localhost:5000`
 
-Create a `Dockerfile`:
+### Production Deployment
 
-```dockerfile
-FROM python:3.11-slim
+See [PRODUCTION.md](PRODUCTION.md) for comprehensive deployment guides including:
 
-WORKDIR /app
+- **Systemd Service** (Recommended for VPS)
+  - Full setup with automatic restart
+  - Nginx reverse proxy configuration
+  - SSL/HTTPS setup
+  - Service management commands
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+- **Docker Deployment**
+  - Single container setup
+  - Docker Compose configuration
+  - Production best practices
 
-COPY . .
-
-EXPOSE 5000
-
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
-```
-
-Build and run:
+#### Quick Docker Setup
 
 ```bash
+# Using Docker Compose (Recommended)
+docker-compose up -d
+
+# Or using plain Docker
 docker build -t cdn-checker .
-docker run -p 5000:5000 cdn-checker
+docker run -d -p 5000:5000 --name cdn-checker cdn-checker
 ```
 
-### Deploy to Various Platforms
+#### Quick Systemd Setup (VPS)
+
+```bash
+# 1. Setup project
+git clone https://github.com/yourusername/cdn-checker.git
+cd cdn-checker
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# 2. Create systemd service (see PRODUCTION.md for full config)
+sudo nano /etc/systemd/system/cdn-checker.service
+
+# 3. Enable and start
+sudo systemctl daemon-reload
+sudo systemctl enable --now cdn-checker
+```
+
+### Platform-as-a-Service
 
 #### Heroku
 
 ```bash
-# Add Procfile
 echo "web: gunicorn app:app" > Procfile
-
-# Deploy
 heroku create your-app-name
 git push heroku main
 ```
 
 #### Railway / Render / Fly.io
 
-These platforms auto-detect Flask apps. Just connect your GitHub repository and they'll handle the deployment.
+These platforms auto-detect Flask apps. Just connect your GitHub repository.
 
 ## API Usage
 
