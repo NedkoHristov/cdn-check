@@ -37,7 +37,7 @@ echo ""
 
 # Stop existing containers
 echo -e "${BLUE}🛑 Stopping existing containers...${NC}"
-docker-compose down
+docker compose down
 echo ""
 
 # Pull latest image
@@ -47,7 +47,7 @@ echo ""
 
 # Start services with Watchtower
 echo -e "${BLUE}▶️  Starting services (CDN Checker + Watchtower)...${NC}"
-docker-compose up -d
+docker compose up -d
 echo ""
 
 # Wait for containers to start
@@ -57,7 +57,7 @@ echo ""
 
 # Check status
 echo -e "${GREEN}✅ Services Status:${NC}"
-docker-compose ps
+docker compose ps
 echo ""
 
 # Show Watchtower logs
@@ -82,9 +82,9 @@ echo "  4. Your VPS automatically updates!"
 echo ""
 echo "📝 Useful Commands:"
 echo "  • View logs:        docker logs watchtower"
-echo "  • Check status:     docker-compose ps"
+echo "  • Check status:     docker compose ps"
 echo "  • Force update:     docker exec watchtower watchtower --run-once"
-echo "  • Restart services: docker-compose restart"
+echo "  • Restart services: docker compose restart"
 echo ""
 echo "📚 Full documentation: WATCHTOWER.md"
 echo ""
