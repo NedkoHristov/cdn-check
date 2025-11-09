@@ -10,9 +10,12 @@ A simple, secure web tool to detect which Content Delivery Network (CDN) a websi
 
 - **[PRODUCTION.md](PRODUCTION.md)** - Complete production deployment guide (Systemd + Docker)
 - **[DOCKER.md](DOCKER.md)** - Docker deployment quick reference
+- **[GITHUB_ACTIONS.md](GITHUB_ACTIONS.md)** - CI/CD pipelines and Docker image builds
+- **[ERROR_HANDLING.md](ERROR_HANDLING.md)** - Error handling and troubleshooting
 - **[QUICKSTART.md](QUICKSTART.md)** - Get started in 5 minutes
 - **[EXAMPLES.md](EXAMPLES.md)** - API usage examples
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contributing guidelines
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
 
 ## Features
 
