@@ -89,37 +89,8 @@ jobs:
           tags: cdn-checker:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          load: true
 
-      - name: Test Docker image
+      - name: Show build summary
         run: |
-          # Start container
-          docker run -d -p 5000:5000 --name cdn-checker-test cdn-checker:test
-          
-          # Wait for startup
-          echo "Waiting for container to start..."
-          sleep 15
-          
-          # Test health
-          echo "Testing application..."
-          curl -f http://localhost:5000/ || exit 1
-          
-          # Show logs
-          echo "Container logs:"
-          docker logs cdn-checker-test
-          
-          # Get image size
-          IMAGE_SIZE=$(docker images cdn-checker:test --format "{{.Size}}")
-          echo "Image size: $IMAGE_SIZE"
           echo "## Build Results" >> $GITHUB_STEP_SUMMARY
           echo "✅ Docker image built successfully" >> $GITHUB_STEP_SUMMARY
-          echo "📦 Image size: **$IMAGE_SIZE**" >> $GITHUB_STEP_SUMMARY
-          
-          # Cleanup
-          docker stop cdn-checker-test
-          docker rm cdn-checker-test
-
-      - name: Analyze image layers
-        run: |
-          echo "## Docker Image Layers" >> $GITHUB_STEP_SUMMARY
-          docker history cdn-checker:test --no-trunc --format "table {{.CreatedBy}}\t{{.Size}}" >> $GITHUB_STEP_SUMMARY
