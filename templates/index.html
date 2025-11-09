@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDN Checker - Check What CDN a Website Uses</title>
+    <meta name="description" content="Free tool to detect and identify which CDN (Content Delivery Network) a website is using">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌐 CDN Checker</h1>
+            <p class="subtitle">Discover which Content Delivery Network (CDN) a website uses</p>
+        </header>
+
+        <main>
+            <div class="search-section">
+                <form id="cdn-form">
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            id="url-input" 
+                            placeholder="Enter website URL (e.g., example.com or www.example.com)"
+                            required
+                            autocomplete="off"
+                            maxlength="2048"
+                        >
+                        <button type="submit" id="check-btn">
+                            <span class="btn-text">Check CDN</span>
+                            <span class="btn-loader" style="display: none;">
+                                <div class="spinner"></div>
+                            </span>
+                        </button>
+                    </div>
+                    <p class="hint">Enter with or without www - both work!</p>
+                </form>
+            </div>
+
+            <div id="error-message" class="error-message" style="display: none;"></div>
+
+            <div id="results" class="results" style="display: none;">
+                <div class="result-header">
+                    <h2>Results for <span id="result-url"></span></h2>
+                </div>
+
+                <div class="cdn-info">
+                    <div class="cdn-badge">
+                        <div class="cdn-icon" id="cdn-icon">🚀</div>
+                        <div>
+                            <div class="cdn-name-label">CDN Provider</div>
+                            <div class="cdn-name" id="cdn-name">-</div>
+                        </div>
+                    </div>
+                    <div class="confidence-meter">
+                        <div class="confidence-label">Confidence</div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="confidence-fill"></div>
+                        </div>
+                        <div class="confidence-value" id="confidence-value">0%</div>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3>📊 Domain Information</h3>
+                    
+                    <div class="detail-card" id="ip-card">
+                        <div class="detail-label">IP Address</div>
+                        <div class="detail-value" id="ip-address">-</div>
+                    </div>
+
+                    <div class="detail-card" id="cname-card">
+                        <div class="detail-label">CNAME Records</div>
+                        <div class="detail-value" id="cname-records">-</div>
+                    </div>
+
+                    <div class="detail-card" id="server-card">
+                        <div class="detail-label">Server Header</div>
+                        <div class="detail-value" id="server-header">-</div>
+                    </div>
+
+                    <div class="detail-card" id="evidence-card" style="display: none;">
+                        <div class="detail-label">Evidence Found</div>
+                        <div class="detail-value">
+                            <ul id="evidence-list"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="additional-headers" id="additional-headers" style="display: none;">
+                    <h3>🔍 HTTP Headers</h3>
+                    <div class="headers-grid" id="headers-grid"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>
+                Built to help identify CDN providers | 
+                <a href="https://github.com/yourusername/cdn-checker" target="_blank" rel="noopener">GitHub</a>
+            </p>
+            <p class="info-text">
+                This tool analyzes HTTP headers, DNS records, and server responses to identify CDN providers.
+            </p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
