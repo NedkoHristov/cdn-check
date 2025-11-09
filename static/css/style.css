@@ -354,6 +354,14 @@ footer a:hover {
     font-size: 0.9rem;
 }
 
+.version-info {
+    margin-top: 8px;
+    opacity: 0.6;
+    font-size: 0.75rem;
+    font-family: 'Courier New', monospace;
+    color: rgba(255, 255, 255, 0.7);
+}
+
 @keyframes fadeInDown {
     from {
         opacity: 0;

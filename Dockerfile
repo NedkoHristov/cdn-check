@@ -18,6 +18,10 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 # Stage 2: Runtime
 FROM python:3.11-alpine
 
+# Build arguments for version info
+ARG APP_VERSION=dev
+ARG BUILD_TIME=unknown
+
 # Set working directory
 WORKDIR /app
 
@@ -25,7 +29,9 @@ WORKDIR /app
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH=/root/.local/bin:$PATH \
-    WORKERS=4
+    WORKERS=4 \
+    APP_VERSION=${APP_VERSION} \
+    BUILD_TIME=${BUILD_TIME}
 
 # Copy Python dependencies from builder
 COPY --from=builder /root/.local /root/.local

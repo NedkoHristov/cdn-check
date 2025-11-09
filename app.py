@@ -7,12 +7,17 @@ import dns.resolver
 import re
 from datetime import datetime
 import urllib3
+import os
 
 # Suppress SSL warnings for sites with invalid certificates
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 app = Flask(__name__)
 limiter = Limiter(key_func=get_remote_address, app=app, default_limits=["200/day", "50/hour"])
+
+# Version info - set via environment variables during build
+VERSION = os.environ.get('APP_VERSION', 'dev')
+BUILD_TIME = os.environ.get('BUILD_TIME', 'local')
 
 # CDN signatures - streamlined for production
 CDNS = {
@@ -140,7 +145,7 @@ def check_cdn(url):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', version=VERSION, build_time=BUILD_TIME)
 
 @app.route('/api/check', methods=['POST'])
 @limiter.limit("10/minute")

@@ -89,6 +89,9 @@ jobs:
           tags: cdn-checker:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            APP_VERSION=ci-${{ github.sha }}
+            BUILD_TIME=${{ github.event.head_commit.timestamp }}
 
       - name: Show build summary
         run: |

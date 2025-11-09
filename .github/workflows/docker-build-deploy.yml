@@ -81,6 +81,9 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            APP_VERSION=${{ github.ref_name }}-${{ github.sha }}
+            BUILD_TIME=${{ github.event.head_commit.timestamp }}
 
       - name: Image size and layers
         if: github.event_name != 'pull_request'
