@@ -140,6 +140,18 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('server-card').style.display = 'block';
         }
 
+        // Set CMS information
+        if (data.cms) {
+            let cmsText = data.cms;
+            if (data.cms_version) {
+                cmsText += ` ${data.cms_version}`;
+            }
+            document.getElementById('cms-info').textContent = cmsText;
+            document.getElementById('cms-card').style.display = 'block';
+        } else {
+            document.getElementById('cms-card').style.display = 'none';
+        }
+
         // Set evidence
         if (data.evidence && data.evidence.length > 0) {
             const evidenceList = data.evidence.map(item => `<li>${escapeHtml(item)}</li>`).join('');

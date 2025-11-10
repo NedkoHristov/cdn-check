@@ -35,6 +35,94 @@ CDNS = {
     },
 }
 
+# CMS detection signatures
+CMS_SIGNATURES = {
+    'WordPress': {
+        'headers': ['x-powered-by'],
+        'header_values': {'x-powered-by': r'WordPress'},
+        'meta_tags': [r'<meta name="generator" content="WordPress ([0-9.]+)"'],
+        'paths': ['/wp-content/', '/wp-includes/', '/wp-json/'],
+        'cookies': ['wordpress_']
+    },
+    'Joomla': {
+        'meta_tags': [r'<meta name="generator" content="Joomla!?\s*([0-9.]+)"'],
+        'paths': ['/components/', '/modules/', '/templates/'],
+        'headers': ['x-content-encoded-by'],
+        'header_values': {'x-content-encoded-by': r'Joomla'}
+    },
+    'Drupal': {
+        'headers': ['x-drupal-cache', 'x-generator'],
+        'header_values': {'x-generator': r'Drupal ([0-9.]+)'},
+        'meta_tags': [r'<meta name="generator" content="Drupal ([0-9.]+)"'],
+        'paths': ['/sites/default/', '/core/']
+    },
+    'Shopify': {
+        'headers': ['x-shopid', 'x-shopify-stage'],
+        'paths': ['/cdn.shopify.com/'],
+        'cookies': ['_shopify_']
+    },
+    'Wix': {
+        'headers': ['x-wix-request-id', 'x-wix-renderer-server'],
+        'paths': ['static.wixstatic.com']
+    },
+    'Magento': {
+        'cookies': ['frontend='],
+        'paths': ['/media/catalog/', '/skin/frontend/'],
+        'headers': ['x-magento-']
+    },
+    'PrestaShop': {
+        'cookies': ['PrestaShop-'],
+        'paths': ['/modules/', '/themes/']
+    }
+}
+
+def detect_cms(url, headers, html_content=None):
+    """Detect CMS and version from headers and HTML content"""
+    cms_info = {'name': None, 'version': None}
+    
+    for cms_name, signatures in CMS_SIGNATURES.items():
+        # Check headers
+        if 'headers' in signatures:
+            for header in signatures['headers']:
+                if any(header.lower() in k.lower() for k in headers.keys()):
+                    cms_info['name'] = cms_name
+                    # Check for version in header value
+                    if 'header_values' in signatures:
+                        for hdr, pattern in signatures['header_values'].items():
+                            if hdr.lower() in [k.lower() for k in headers.keys()]:
+                                header_val = headers.get(hdr) or headers.get(hdr.lower()) or headers.get(hdr.upper())
+                                if header_val:
+                                    match = re.search(pattern, str(header_val), re.IGNORECASE)
+                                    if match and match.groups():
+                                        cms_info['version'] = match.group(1)
+        
+        # Check cookies
+        if 'cookies' in signatures:
+            set_cookie = headers.get('set-cookie', '')
+            for cookie_sig in signatures['cookies']:
+                if cookie_sig.lower() in set_cookie.lower():
+                    cms_info['name'] = cms_name
+        
+        # Check HTML content for meta tags
+        if html_content and 'meta_tags' in signatures:
+            for pattern in signatures['meta_tags']:
+                match = re.search(pattern, html_content, re.IGNORECASE)
+                if match:
+                    cms_info['name'] = cms_name
+                    if match.groups():
+                        cms_info['version'] = match.group(1)
+        
+        # Check for common paths in HTML
+        if html_content and 'paths' in signatures:
+            for path in signatures['paths']:
+                if path in html_content:
+                    cms_info['name'] = cms_name
+        
+        if cms_info['name']:
+            break
+    
+    return cms_info
+
 def validate_url(url):
     """Validate and normalize URL with improved handling"""
     url = url.strip()
@@ -71,17 +159,20 @@ def check_cdn(url):
         # Extract domain from URL
         domain = url.replace('https://', '').replace('http://', '').split('/')[0].split(':')[0]
         
-        # Get headers with better error handling
+        # Get headers and HTML content with better error handling
+        html_content = None
         try:
-            response = requests.head(url, timeout=10, allow_redirects=True, verify=True)
+            response = requests.get(url, timeout=10, allow_redirects=True, verify=True)
             result['headers'] = dict(response.headers)
             headers = response.headers
+            html_content = response.text[:50000]  # Only first 50KB for CMS detection
         except requests.exceptions.SSLError:
             # Try without SSL verification if certificate is invalid
             try:
-                response = requests.head(url, timeout=10, allow_redirects=True, verify=False)
+                response = requests.get(url, timeout=10, allow_redirects=True, verify=False)
                 result['headers'] = dict(response.headers)
                 headers = response.headers
+                html_content = response.text[:50000]  # Only first 50KB for CMS detection
                 result['evidence'].append('⚠️ SSL certificate verification failed - results may be inaccurate')
             except Exception as e:
                 result['error'] = f'Unable to connect to website. The site may be down or unreachable.'
@@ -137,6 +228,16 @@ def check_cdn(url):
             result['confidence'] = min(scores[result['cdn_detected']] * 10, 100)
         else:
             result['cdn_detected'] = 'None detected'
+        
+        # Detect CMS
+        cms_info = detect_cms(url, headers, html_content)
+        if cms_info['name']:
+            result['cms'] = cms_info['name']
+            if cms_info['version']:
+                result['cms_version'] = cms_info['version']
+                result['evidence'].append(f"CMS: {cms_info['name']} {cms_info['version']}")
+            else:
+                result['evidence'].append(f"CMS: {cms_info['name']}")
             
     except Exception as e:
         result['error'] = f'An unexpected error occurred while checking the website.'
