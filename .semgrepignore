@@ -1,0 +1,8 @@
+# Semgrep ignore patterns
+
+# Docker compose security warnings - intentional design decisions
+docker-compose.yml
+
+# SSL verification disabled intentionally to check sites with bad certificates
+# This is the core functionality of the CDN checker
+app.py:82

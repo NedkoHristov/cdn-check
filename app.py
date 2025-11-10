@@ -162,4 +162,5 @@ def ratelimit(e):
     return jsonify({'error': 'Rate limit exceeded'}), 429
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    # Only for local development - use gunicorn in production
+    app.run(host='127.0.0.1', port=5000, debug=True)
