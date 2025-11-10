@@ -3,6 +3,10 @@
 # Docker compose security warnings - intentional design decisions
 docker-compose.yml
 
-# SSL verification disabled intentionally to check sites with bad certificates
-# This is the core functionality of the CDN checker
-app.py:82
+# app.py intentional security decisions:
+# - SSL verification disabled to check sites with bad certificates (core functionality)
+# - debug=True is fine for local development (never used in production - we use gunicorn)
+app.py
+
+# static/js/app.js - innerHTML is safe because we use escapeHtml() for sanitization
+static/js/app.js
