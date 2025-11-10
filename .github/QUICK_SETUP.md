@@ -14,7 +14,7 @@ No additional setup required! The workflows use `GITHUB_TOKEN` which is automati
 
 ### First Build
 
-When you push to `main` or `master`:
+When you push to `master`:
 1. CI workflow tests your code
 2. Docker Build workflow creates image
 3. Image pushed to `ghcr.io/[your-username]/cdn-checker`
