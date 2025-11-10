@@ -55,4 +55,4 @@ services:
       # Enable notifications (optional)
       # - WATCHTOWER_NOTIFICATIONS=shoutrrr
       # - WATCHTOWER_NOTIFICATION_URL=telegram://token@telegram?channels=channel-1
-    command: --debug --http-api-update
+    command: --debug --http-api-update --interval 300
