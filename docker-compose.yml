@@ -52,7 +52,7 @@ services:
       - WATCHTOWER_CLEANUP=true
       # Include stopped containers
       - WATCHTOWER_INCLUDE_STOPPED=true
-      # HTTP API token for webhook authentication
+      # HTTP API token for webhook authentication (set in .env file)
       - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_TOKEN}
       # Enable notifications (optional)
       # - WATCHTOWER_NOTIFICATIONS=shoutrrr
