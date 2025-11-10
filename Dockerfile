@@ -25,25 +25,24 @@ ARG BUILD_TIME=unknown
 # Set working directory
 WORKDIR /app
 
+# Create non-root user for security (before copying files)
+RUN adduser -D -u 1000 appuser
+
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PATH=/root/.local/bin:$PATH \
+    PATH=/home/appuser/.local/bin:$PATH \
     WORKERS=4 \
     APP_VERSION=${APP_VERSION} \
     BUILD_TIME=${BUILD_TIME}
 
-# Copy Python dependencies from builder
-COPY --from=builder /root/.local /root/.local
+# Copy Python dependencies from builder to appuser home
+COPY --from=builder --chown=appuser:appuser /root/.local /home/appuser/.local
 
 # Copy application code
-COPY app.py .
-COPY templates/ templates/
-COPY static/ static/
-
-# Create non-root user for security
-RUN adduser -D -u 1000 appuser && \
-    chown -R appuser:appuser /app
+COPY --chown=appuser:appuser app.py .
+COPY --chown=appuser:appuser templates/ templates/
+COPY --chown=appuser:appuser static/ static/
 
 # Switch to non-root user
 USER appuser
