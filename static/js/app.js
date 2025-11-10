@@ -152,6 +152,82 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('cms-card').style.display = 'none';
         }
 
+        // Display Technology Stack
+        if (data.server || data.language || data.frameworks || data.analytics) {
+            let techHTML = '<div class="detail-value">';
+            if (data.server) techHTML += `<div><strong>Server:</strong> ${escapeHtml(data.server)}</div>`;
+            if (data.language && data.language.length > 0) techHTML += `<div><strong>Language:</strong> ${data.language.join(', ')}</div>`;
+            if (data.frameworks && data.frameworks.length > 0) techHTML += `<div><strong>Frameworks:</strong> ${data.frameworks.join(', ')}</div>`;
+            if (data.analytics && data.analytics.length > 0) techHTML += `<div><strong>Analytics:</strong> ${data.analytics.join(', ')}</div>`;
+            if (data.hosting_provider) techHTML += `<div><strong>Hosting:</strong> ${data.hosting_provider}</div>`;
+            techHTML += '</div>';
+            document.getElementById('tech-card').innerHTML = techHTML;
+            document.getElementById('tech-section').style.display = 'block';
+        }
+
+        // Display Security Analysis
+        if (data.security) {
+            let secHTML = '<div class="detail-value">';
+            secHTML += `<div style="margin-bottom: 10px;"><strong>Security Grade:</strong> <span style="font-size: 1.5em; font-weight: bold; color: ${getGradeColor(data.security.grade)}">${data.security.grade}</span> (${data.security.score}/${data.security.max_score})</div>`;
+            secHTML += '<div><strong>Security Headers:</strong></div><ul>';
+            for (const [header, status] of Object.entries(data.security.headers)) {
+                const icon = status.includes('✓') ? '✓' : '✗';
+                const color = status.includes('✓') ? 'green' : 'red';
+                secHTML += `<li style="color: ${color}">${icon} ${header}</li>`;
+            }
+            secHTML += '</ul></div>';
+            document.getElementById('security-card').innerHTML = secHTML;
+            document.getElementById('security-section').style.display = 'block';
+        }
+
+        // Display SSL Information
+        if (data.ssl) {
+            let sslHTML = '<div class="detail-value">';
+            sslHTML += `<div><strong>Status:</strong> ${data.ssl.status}</div>`;
+            sslHTML += `<div><strong>Issuer:</strong> ${data.ssl.issuer}</div>`;
+            sslHTML += `<div><strong>Valid Until:</strong> ${data.ssl.valid_until} (${data.ssl.days_remaining} days)</div>`;
+            sslHTML += `<div><strong>TLS Version:</strong> ${data.ssl.tls_version}</div>`;
+            sslHTML += '</div>';
+            document.getElementById('ssl-card').innerHTML = sslHTML;
+            document.getElementById('ssl-section').style.display = 'block';
+        }
+
+        // Display Domain Information
+        if (data.domain_info) {
+            let domainHTML = '<div class="detail-value">';
+            domainHTML += `<div><strong>Domain Age:</strong> ${data.domain_info.age_years} years (${data.domain_info.age_days} days)</div>`;
+            domainHTML += `<div><strong>Created:</strong> ${data.domain_info.created}</div>`;
+            domainHTML += `<div><strong>Expires:</strong> ${data.domain_info.expires}</div>`;
+            domainHTML += `<div><strong>Registrar:</strong> ${data.domain_info.registrar}</div>`;
+            domainHTML += '</div>';
+            document.getElementById('domain-card').innerHTML = domainHTML;
+            document.getElementById('domain-section').style.display = 'block';
+        }
+
+        // Display Email Security
+        if (data.email_security) {
+            let emailHTML = '<div class="detail-value">';
+            emailHTML += `<div><strong>SPF:</strong> ${data.email_security.spf}</div>`;
+            emailHTML += `<div><strong>DMARC:</strong> ${data.email_security.dmarc}</div>`;
+            if (data.email_security.mx && data.email_security.mx.length > 0) {
+                emailHTML += `<div><strong>Mail Servers:</strong> ${data.email_security.mx.join(', ')}</div>`;
+            }
+            emailHTML += '</div>';
+            document.getElementById('email-card').innerHTML = emailHTML;
+            document.getElementById('email-section').style.display = 'block';
+        }
+
+        // Display Performance
+        if (data.performance) {
+            let perfHTML = '<div class="detail-value">';
+            perfHTML += `<div><strong>Response Time:</strong> ${data.performance.response_time_ms}ms</div>`;
+            perfHTML += `<div><strong>Compression:</strong> ${data.performance.compression}</div>`;
+            if (data.performance.page_size_kb) perfHTML += `<div><strong>Page Size:</strong> ${data.performance.page_size_kb} KB</div>`;
+            perfHTML += '</div>';
+            document.getElementById('performance-card').innerHTML = perfHTML;
+            document.getElementById('performance-section').style.display = 'block';
+        }
+
         // Set evidence
         if (data.evidence && data.evidence.length > 0) {
             const evidenceList = data.evidence.map(item => `<li>${escapeHtml(item)}</li>`).join('');
@@ -244,6 +320,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    function getGradeColor(grade) {
+        const colors = {
+            'A+': '#00a86b',
+            'A': '#00c853',
+            'B': '#64dd17',
+            'C': '#ffd600',
+            'D': '#ff6f00',
+            'F': '#d50000'
+        };
+        return colors[grade] || '#666';
     }
 
     // Auto-focus on input

@@ -5,9 +5,14 @@ import requests
 import socket
 import dns.resolver
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 import urllib3
 import os
+import whois
+from bs4 import BeautifulSoup
+import ssl
+import OpenSSL
+from urllib.parse import urlparse
 
 # Suppress SSL warnings for sites with invalid certificates
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -123,6 +128,257 @@ def detect_cms(url, headers, html_content=None):
     
     return cms_info
 
+def detect_technologies(headers, html_content):
+    """Detect web technologies from headers and HTML"""
+    tech = {'server': None, 'language': [], 'frameworks': [], 'analytics': []}
+    
+    # Server detection
+    server_header = headers.get('server', headers.get('Server', ''))
+    if server_header:
+        tech['server'] = server_header
+    
+    # Language detection from headers
+    x_powered_by = headers.get('x-powered-by', headers.get('X-Powered-By', ''))
+    if x_powered_by:
+        if 'PHP' in x_powered_by:
+            tech['language'].append(x_powered_by)
+        elif 'ASP.NET' in x_powered_by:
+            tech['language'].append(x_powered_by)
+    
+    if html_content:
+        # Framework detection
+        if 'react' in html_content.lower() or '__react' in html_content.lower():
+            tech['frameworks'].append('React')
+        if 'vue.js' in html_content.lower() or '__vue' in html_content.lower():
+            tech['frameworks'].append('Vue.js')
+        if 'ng-version' in html_content.lower() or 'angular' in html_content.lower():
+            tech['frameworks'].append('Angular')
+        if 'next.js' in html_content.lower() or '__next' in html_content.lower():
+            tech['frameworks'].append('Next.js')
+        
+        # Analytics detection
+        if 'google-analytics.com' in html_content or 'gtag' in html_content:
+            tech['analytics'].append('Google Analytics')
+        if 'connect.facebook.net' in html_content or 'fbq(' in html_content:
+            tech['analytics'].append('Facebook Pixel')
+        if 'hotjar.com' in html_content:
+            tech['analytics'].append('Hotjar')
+    
+    return tech
+
+def analyze_security_headers(headers):
+    """Analyze security headers and provide a score"""
+    security = {
+        'score': 0,
+        'max_score': 100,
+        'headers': {},
+        'grade': 'F'
+    }
+    
+    security_headers = {
+        'strict-transport-security': {'points': 20, 'name': 'HSTS'},
+        'content-security-policy': {'points': 20, 'name': 'CSP'},
+        'x-frame-options': {'points': 15, 'name': 'X-Frame-Options'},
+        'x-content-type-options': {'points': 15, 'name': 'X-Content-Type-Options'},
+        'x-xss-protection': {'points': 10, 'name': 'X-XSS-Protection'},
+        'referrer-policy': {'points': 10, 'name': 'Referrer-Policy'},
+        'permissions-policy': {'points': 10, 'name': 'Permissions-Policy'}
+    }
+    
+    for header, config in security_headers.items():
+        header_value = None
+        for h in headers.keys():
+            if h.lower() == header:
+                header_value = headers[h]
+                break
+        
+        if header_value:
+            security['score'] += config['points']
+            security['headers'][config['name']] = '✓ Present'
+        else:
+            security['headers'][config['name']] = '✗ Missing'
+    
+    # Calculate grade
+    if security['score'] >= 90:
+        security['grade'] = 'A+'
+    elif security['score'] >= 80:
+        security['grade'] = 'A'
+    elif security['score'] >= 70:
+        security['grade'] = 'B'
+    elif security['score'] >= 60:
+        security['grade'] = 'C'
+    elif security['score'] >= 50:
+        security['grade'] = 'D'
+    else:
+        security['grade'] = 'F'
+    
+    return security
+
+def get_ssl_info(domain):
+    """Get SSL certificate information"""
+    try:
+        context = ssl.create_default_context()
+        with socket.create_connection((domain, 443), timeout=5) as sock:
+            with context.wrap_socket(sock, server_hostname=domain) as ssock:
+                cert = ssock.getpeercert()
+                
+                # Parse certificate
+                issuer = dict(x[0] for x in cert['issuer'])
+                subject = dict(x[0] for x in cert['subject'])
+                
+                # Get expiry date
+                not_after = datetime.strptime(cert['notAfter'], '%b %d %H:%M:%S %Y %Z')
+                days_until_expiry = (not_after - datetime.now()).days
+                
+                # Get TLS version
+                tls_version = ssock.version()
+                
+                return {
+                    'issuer': issuer.get('organizationName', 'Unknown'),
+                    'subject': subject.get('commonName', domain),
+                    'valid_until': not_after.strftime('%Y-%m-%d'),
+                    'days_remaining': days_until_expiry,
+                    'tls_version': tls_version,
+                    'status': 'Valid' if days_until_expiry > 0 else 'Expired'
+                }
+    except Exception as e:
+        return {'error': 'Could not retrieve SSL information'}
+
+def get_domain_info(domain):
+    """Get domain registration and age information"""
+    try:
+        # Remove www. prefix if present
+        clean_domain = domain.replace('www.', '')
+        
+        w = whois.whois(clean_domain)
+        
+        # Get creation date
+        creation_date = w.creation_date
+        if isinstance(creation_date, list):
+            creation_date = creation_date[0]
+        
+        # Get expiration date
+        expiration_date = w.expiration_date
+        if isinstance(expiration_date, list):
+            expiration_date = expiration_date[0]
+        
+        # Calculate age
+        if creation_date:
+            age_days = (datetime.now() - creation_date).days
+            age_years = age_days // 365
+            
+            return {
+                'age_years': age_years,
+                'age_days': age_days,
+                'created': creation_date.strftime('%Y-%m-%d') if creation_date else 'Unknown',
+                'expires': expiration_date.strftime('%Y-%m-%d') if expiration_date else 'Unknown',
+                'registrar': w.registrar if hasattr(w, 'registrar') else 'Unknown'
+            }
+    except Exception as e:
+        pass
+    
+    return None
+
+def get_email_security(domain):
+    """Check email security records (SPF, DMARC, MX)"""
+    email_sec = {'spf': None, 'dmarc': None, 'mx': []}
+    
+    # Remove www. prefix
+    clean_domain = domain.replace('www.', '')
+    
+    try:
+        # Check SPF
+        try:
+            spf_records = dns.resolver.resolve(clean_domain, 'TXT')
+            for record in spf_records:
+                txt = str(record)
+                if 'v=spf1' in txt:
+                    email_sec['spf'] = 'Configured'
+                    break
+            if not email_sec['spf']:
+                email_sec['spf'] = 'Not found'
+        except:
+            email_sec['spf'] = 'Not found'
+        
+        # Check DMARC
+        try:
+            dmarc_records = dns.resolver.resolve(f'_dmarc.{clean_domain}', 'TXT')
+            for record in dmarc_records:
+                txt = str(record)
+                if 'v=DMARC1' in txt:
+                    email_sec['dmarc'] = 'Configured'
+                    break
+            if not email_sec['dmarc']:
+                email_sec['dmarc'] = 'Not found'
+        except:
+            email_sec['dmarc'] = 'Not found'
+        
+        # Check MX records
+        try:
+            mx_records = dns.resolver.resolve(clean_domain, 'MX')
+            email_sec['mx'] = [str(r.exchange) for r in mx_records]
+        except:
+            email_sec['mx'] = []
+    except:
+        pass
+    
+    return email_sec
+
+def detect_hosting_provider(ip_address, domain):
+    """Detect hosting provider based on IP and reverse DNS"""
+    providers = {
+        'Amazon': ['amazonaws.com', 'aws', 'ec2'],
+        'Google Cloud': ['googleusercontent.com', 'google.com', 'gcp'],
+        'Microsoft Azure': ['azure', 'microsoft.com'],
+        'Cloudflare': ['cloudflare.com'],
+        'DigitalOcean': ['digitalocean.com'],
+        'Linode': ['linode.com'],
+        'Vultr': ['vultr.com'],
+        'Hetzner': ['hetzner.com'],
+        'OVH': ['ovh.net', 'ovh.com']
+    }
+    
+    try:
+        # Reverse DNS lookup
+        reverse_dns = socket.gethostbyaddr(ip_address)[0]
+        
+        for provider, patterns in providers.items():
+            for pattern in patterns:
+                if pattern in reverse_dns.lower():
+                    return provider
+    except:
+        pass
+    
+    return 'Unknown'
+
+def get_performance_metrics(response, start_time):
+    """Calculate performance metrics"""
+    metrics = {}
+    
+    # Response time
+    response_time = (datetime.now() - start_time).total_seconds() * 1000  # in ms
+    metrics['response_time_ms'] = round(response_time, 2)
+    
+    # Check compression
+    content_encoding = response.headers.get('content-encoding', '').lower()
+    if 'gzip' in content_encoding:
+        metrics['compression'] = 'gzip'
+    elif 'br' in content_encoding:
+        metrics['compression'] = 'brotli'
+    else:
+        metrics['compression'] = 'none'
+    
+    # HTTP version (approximation)
+    metrics['http_version'] = 'HTTP/1.1'  # Most common, hard to detect HTTP/2 with requests library
+    
+    # Page size
+    content_length = response.headers.get('content-length')
+    if content_length:
+        size_kb = int(content_length) / 1024
+        metrics['page_size_kb'] = round(size_kb, 2)
+    
+    return metrics
+
 def validate_url(url):
     """Validate and normalize URL with improved handling"""
     url = url.strip()
@@ -143,8 +399,9 @@ def validate_url(url):
 
 def check_cdn(url):
     """Main CDN detection logic with improved error handling"""
+    start_time = datetime.now()  # Track start time for performance metrics
     result = {'url': url, 'cdn_detected': None, 'confidence': 0, 'evidence': [], 
-              'ip_address': None, 'cnames': [], 'headers': {}, 'timestamp': datetime.now().isoformat()}
+              'ip_address': None, 'cnames': [], 'headers': {}, 'timestamp': start_time.isoformat()}
     
     # Validate URL
     validated_url, error = validate_url(url)
@@ -238,6 +495,45 @@ def check_cdn(url):
                 result['evidence'].append(f"CMS: {cms_info['name']} {cms_info['version']}")
             else:
                 result['evidence'].append(f"CMS: {cms_info['name']}")
+        
+        # Detect technologies
+        tech = detect_technologies(headers, html_content)
+        if tech['server']:
+            result['server'] = tech['server']
+        if tech['language']:
+            result['language'] = tech['language']
+        if tech['frameworks']:
+            result['frameworks'] = tech['frameworks']
+        if tech['analytics']:
+            result['analytics'] = tech['analytics']
+        
+        # Analyze security headers
+        security = analyze_security_headers(headers)
+        result['security'] = security
+        
+        # Get SSL information
+        ssl_info = get_ssl_info(domain)
+        if 'error' not in ssl_info:
+            result['ssl'] = ssl_info
+        
+        # Get domain information
+        domain_info = get_domain_info(domain)
+        if domain_info:
+            result['domain_info'] = domain_info
+        
+        # Get email security
+        email_sec = get_email_security(domain)
+        result['email_security'] = email_sec
+        
+        # Detect hosting provider
+        if result.get('ip_address'):
+            hosting = detect_hosting_provider(result['ip_address'], domain)
+            result['hosting_provider'] = hosting
+        
+        # Get performance metrics
+        end_time = datetime.now()
+        metrics = get_performance_metrics(response, start_time)
+        result['performance'] = metrics
             
     except Exception as e:
         result['error'] = f'An unexpected error occurred while checking the website.'
