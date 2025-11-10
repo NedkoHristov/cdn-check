@@ -95,8 +95,18 @@ jobs:
         if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.push_to_registry)
         run: |
           echo "Triggering Watchtower to update containers..."
-          curl -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" \
-               https://nedko.info/watchtower/v1/update
+          response=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" \
+               https://nedko.info/watchtower/v1/update)
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          echo "Response: $body"
+          echo "HTTP Status: $http_code"
+          if [ "$http_code" -ne 200 ] && [ "$http_code" -ne 204 ]; then
+            echo "Warning: Watchtower webhook returned HTTP $http_code"
+            echo "This is non-fatal - Watchtower will poll for updates within 5 minutes"
+          else
+            echo "✓ Watchtower webhook triggered successfully"
+          fi
 
   security-scan:
     needs: build-and-push
