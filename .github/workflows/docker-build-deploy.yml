@@ -91,6 +91,13 @@ jobs:
           echo "## Docker Image Information" >> $GITHUB_STEP_SUMMARY
           echo "**Tags:** ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
 
+      - name: Trigger Watchtower update via webhook
+        if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.push_to_registry)
+        run: |
+          echo "Triggering Watchtower to update containers..."
+          curl -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" \
+               https://nedko.info/watchtower/v1/update
+
   security-scan:
     needs: build-and-push
     runs-on: ubuntu-latest
