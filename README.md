@@ -39,6 +39,14 @@ A comprehensive web security and performance analysis tool that detects CDN prov
 - **SSL/TLS Certificate Info** - Issuer, expiration, TLS version
 - **Email Security** - SPF, DMARC, MX records
 
+### 🔍 SEO Analysis
+- **SEO Score** - Comprehensive SEO grading (A+ to F)
+- **Meta Tags** - Title, description, viewport, canonical, Open Graph, Twitter Cards
+- **Heading Structure** - H1-H6 analysis and recommendations
+- **Structured Data** - JSON-LD and Schema.org detection
+- **Images Optimization** - Alt text presence analysis
+- **Issues & Recommendations** - Actionable SEO improvements
+
 ### 💻 Technology Stack Detection
 - **CMS Detection** - WordPress, Joomla, Drupal, Shopify, Wix, Magento, PrestaShop (with version detection)
 - **Web Server** - Apache, Nginx, IIS, LiteSpeed
