@@ -38,6 +38,10 @@ CDNS = {
         'headers': ['sg-cdn'],
         'cname': r'\.sgcdn\.|\.siteground\.'
     },
+    'Vercel': {
+        'headers': ['x-vercel-id', 'x-vercel-cache'],
+        'cname': r'\.vercel\.app|\.vercel-dns\.com|\.vercel\.com'
+    },
 }
 
 # CMS detection signatures

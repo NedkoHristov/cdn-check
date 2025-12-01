@@ -27,7 +27,7 @@ A comprehensive web security and performance analysis tool that detects CDN prov
 ## ✨ Features
 
 ### 🌐 CDN Detection
-- Identifies 10+ major CDN providers (CloudFlare, AWS CloudFront, Fastly, Akamai, Azure CDN, Google Cloud CDN, KeyCDN, BunnyCDN, SiteGround CDN)
+- Identifies 10+ major CDN providers (CloudFlare, AWS CloudFront, Fastly, Akamai, Azure CDN, Google Cloud CDN, KeyCDN, BunnyCDN, SiteGround CDN, Vercel)
 - HTTP header analysis
 - DNS CNAME record inspection
 - Confidence scoring
