@@ -42,6 +42,46 @@ CDNS = {
         'headers': ['x-vercel-id', 'x-vercel-cache'],
         'cname': r'\.vercel\.app|\.vercel-dns\.com|\.vercel\.com'
     },
+    'Limelight Networks': {
+        'headers': ['x-llnw-edge'],
+        'cname': r'\.lldns\.net|\.llnwd\.net'
+    },
+    'CDN77': {
+        'headers': ['x-cdn'],
+        'cname': r'\.cdn77\.net|\.cdn77\.org'
+    },
+    'StackPath': {
+        'headers': ['x-sp-edge', 'x-stackpath-edge'],
+        'cname': r'\.stackpathcdn\.com|\.stackpath\.net'
+    },
+    'Alibaba Cloud CDN': {
+        'headers': ['ali-swift-global-savetime', 'eagleid'],
+        'cname': r'\.alicdn\.com|\.aliyuncs\.com'
+    },
+    'Tencent Cloud CDN': {
+        'headers': ['x-nws-log-uuid'],
+        'cname': r'\.cdn\.dnsv1\.com|\.tencent-cloud\.com'
+    },
+    'Imperva': {
+        'headers': ['x-iinfo', 'x-cdn'],
+        'cname': r'\.incapdns\.net|\.imperva\.com'
+    },
+    'Sucuri': {
+        'headers': ['x-sucuri-id', 'x-sucuri-cache'],
+        'cname': r'\.sucuri\.net'
+    },
+    'CacheFly': {
+        'headers': ['x-cf1', 'x-cf2'],
+        'cname': r'\.cachefly\.net'
+    },
+    'Netlify': {
+        'headers': ['x-nf-request-id', 'server'],
+        'cname': r'\.netlify\.app|\.netlify\.com'
+    },
+    'jsDelivr': {
+        'headers': ['x-jsd-version'],
+        'cname': r'\.jsdelivr\.net'
+    },
 }
 
 # CMS detection signatures
