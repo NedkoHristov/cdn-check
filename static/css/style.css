@@ -48,6 +48,47 @@ header h1 {
 .subtitle {
     color: rgba(255, 255, 255, 0.9);
     font-size: 1.1rem;
+    margin-bottom: 20px;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.tab-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.tab-btn.active {
+    background: white;
+    color: var(--primary-color);
+    border-color: white;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
 }
 
 .search-section {
@@ -422,6 +463,105 @@ footer a:hover {
     }
 }
 
+/* Changelog Section */
+.changelog-section {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.changelog-section h2 {
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    font-size: 2rem;
+}
+
+.changelog-intro {
+    color: var(--text-secondary);
+    margin-bottom: 30px;
+}
+
+.loading-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}
+
+.loading-state p {
+    margin-top: 15px;
+}
+
+.changelog-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.commit-item {
+    padding: 20px;
+    background: var(--bg-color);
+    border-radius: 12px;
+    border-left: 4px solid var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.commit-item:hover {
+    transform: translateX(5px);
+    box-shadow: var(--shadow);
+}
+
+.commit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.commit-sha {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 4px 8px;
+    background: rgba(37, 99, 235, 0.1);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.commit-sha:hover {
+    background: rgba(37, 99, 235, 0.2);
+    transform: scale(1.05);
+}
+
+.commit-date {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.commit-message {
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.commit-author {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.no-commits {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}
+
 @media (max-width: 480px) {
     body {
         padding: 10px;
@@ -433,5 +573,22 @@ footer a:hover {
 
     .cdn-name {
         font-size: 1.4rem;
+    }
+
+    .tabs {
+        flex-direction: column;
+    }
+
+    .tab-btn {
+        width: 100%;
+    }
+
+    .changelog-section {
+        padding: 20px;
+    }
+
+    .commit-header {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }

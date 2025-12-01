@@ -598,6 +598,39 @@ def api_check():
         return jsonify({'error': 'URL too long'}), 400
     return jsonify(check_cdn(data['url']))
 
+@app.route('/api/changelog', methods=['GET'])
+@limiter.limit("30/minute")
+def get_changelog():
+    """Fetch recent commits from GitHub repository"""
+    try:
+        # GitHub API endpoint for commits on master branch
+        github_api_url = 'https://api.github.com/repos/NedkoHristov/cdn-check/commits'
+        params = {'sha': 'master', 'per_page': 20}
+        
+        # Make request to GitHub API
+        response = requests.get(github_api_url, params=params, timeout=10)
+        
+        if response.status_code != 200:
+            return jsonify({'error': 'Unable to fetch changelog'}), 500
+        
+        commits = response.json()
+        
+        # Format commits for frontend
+        changelog = []
+        for commit in commits:
+            changelog.append({
+                'sha': commit['sha'][:7],
+                'message': commit['commit']['message'].split('\n')[0],  # First line only
+                'author': commit['commit']['author']['name'],
+                'date': commit['commit']['author']['date'],
+                'url': commit['html_url']
+            })
+        
+        return jsonify({'commits': changelog})
+    
+    except Exception as e:
+        return jsonify({'error': 'Failed to fetch changelog'}), 500
+
 @app.errorhandler(429)
 def ratelimit(e):
     return jsonify({'error': 'Rate limit exceeded'}), 429

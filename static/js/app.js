@@ -336,4 +336,93 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Auto-focus on input
     urlInput.focus();
+
+    // Tab functionality
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            
+            // Remove active class from all tabs
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            this.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            // Load changelog if changelog tab is clicked
+            if (tabName === 'changelog' && !window.changelogLoaded) {
+                loadChangelog();
+            }
+        });
+    });
+
+    // Changelog functionality
+    async function loadChangelog() {
+        const loadingEl = document.getElementById('changelog-loading');
+        const errorEl = document.getElementById('changelog-error');
+        const listEl = document.getElementById('changelog-list');
+        
+        loadingEl.style.display = 'block';
+        errorEl.style.display = 'none';
+        listEl.innerHTML = '';
+        
+        try {
+            const response = await fetch('/api/changelog');
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to load changelog');
+            }
+            
+            if (!data.commits || data.commits.length === 0) {
+                listEl.innerHTML = '<p class="no-commits">No commits found</p>';
+            } else {
+                renderChangelog(data.commits);
+            }
+            
+            window.changelogLoaded = true;
+            
+        } catch (error) {
+            console.error('Error loading changelog:', error);
+            errorEl.textContent = error.message || 'Failed to load changelog. Please try again later.';
+            errorEl.style.display = 'block';
+        } finally {
+            loadingEl.style.display = 'none';
+        }
+    }
+
+    function renderChangelog(commits) {
+        const listEl = document.getElementById('changelog-list');
+        
+        commits.forEach(commit => {
+            const commitEl = document.createElement('div');
+            commitEl.className = 'commit-item';
+            
+            const date = new Date(commit.date);
+            const formattedDate = date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            commitEl.innerHTML = `
+                <div class="commit-header">
+                    <a href="${escapeHtml(commit.url)}" target="_blank" rel="noopener" class="commit-sha">
+                        ${escapeHtml(commit.sha)}
+                    </a>
+                    <span class="commit-date">${formattedDate}</span>
+                </div>
+                <div class="commit-message">${escapeHtml(commit.message)}</div>
+                <div class="commit-author">by ${escapeHtml(commit.author)}</div>
+            `;
+            
+            listEl.appendChild(commitEl);
+        });
+    }
 });

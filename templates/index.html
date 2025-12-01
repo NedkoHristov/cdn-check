@@ -21,9 +21,14 @@
         <header>
             <h1>🌐 CDN Checker</h1>
             <p class="subtitle">Discover which Content Delivery Network (CDN) a website uses</p>
+            <nav class="tabs">
+                <button class="tab-btn active" data-tab="checker">CDN Checker</button>
+                <button class="tab-btn" data-tab="changelog">Changelog</button>
+            </nav>
         </header>
 
         <main>
+            <div id="checker-tab" class="tab-content active">
             <div class="search-section">
                 <form id="cdn-form">
                     <div class="input-group">
@@ -135,6 +140,20 @@
                 <div class="additional-headers" id="additional-headers" style="display: none;">
                     <h3>🔍 HTTP Headers</h3>
                     <div class="headers-grid" id="headers-grid"></div>
+                </div>
+            </div>
+            </div>
+
+            <div id="changelog-tab" class="tab-content">
+                <div class="changelog-section">
+                    <h2>📝 Recent Changes</h2>
+                    <p class="changelog-intro">Latest commits to the master branch</p>
+                    <div id="changelog-loading" class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Loading changelog...</p>
+                    </div>
+                    <div id="changelog-error" class="error-message" style="display: none;"></div>
+                    <div id="changelog-list" class="changelog-list"></div>
                 </div>
             </div>
         </main>
