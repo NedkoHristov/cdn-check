@@ -5,15 +5,16 @@ FROM python:3.11-alpine AS builder
 # Set working directory
 WORKDIR /app
 
-# Install build dependencies
+# Install build dependencies in one layer
 RUN apk add --no-cache \
     gcc \
     musl-dev \
     linux-headers
 
-# Copy requirements and install dependencies
+# Copy requirements and install dependencies with build cache mount
 COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --user -r requirements.txt
 
 # Stage 2: Runtime
 FROM python:3.11-alpine

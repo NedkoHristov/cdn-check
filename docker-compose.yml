@@ -42,8 +42,8 @@ services:
       # Mount Docker socket to manage containers
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      # Check for updates every 5 minutes (300 seconds) - fallback for missed webhooks
-      - WATCHTOWER_POLL_INTERVAL=300
+      # Webhook-only mode (0 seconds = only via webhook)
+      - WATCHTOWER_POLL_INTERVAL=0
       # Only update containers with the watchtower label
       - WATCHTOWER_LABEL_ENABLE=true
       # Clean up old images after updating
