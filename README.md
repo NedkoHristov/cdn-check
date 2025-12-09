@@ -177,7 +177,48 @@ docker-compose up -d
 docker build -t cdn-checker .
 docker run -d -p 5000:5000 --name cdn-checker cdn-checker
 ```
+#### Make docker permanent (to survive cold boot)
 
+```bash
+sudo vi /etc/systemd/system/cdn-check.service
+```
+
+Enter (with change your specific data) this:
+
+```bash
+[Unit]
+Description=Docker Compose Project: cdn-check
+# Critical: Wait for Docker API and Network
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Replace with the directory containing your docker-compose.yml
+WorkingDirectory=/usr/share/nginx/html/nedko.info/cdn-check
+
+# Use full path to docker.
+# Note: 'docker compose' (v2) is a plugin, not a standalone binary like v1.
+ExecStart=/usr/bin/docker compose up -d --remove-orphans
+ExecStop=/usr/bin/docker compose down
+
+# Optional: User context if you are running rootless or need specific permissions
+# User=root
+# Group=root
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Once created enable the new service:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable cdn-check.service
+sudo systemctl start cdn-check.service
+```
 #### Quick Systemd Setup (VPS)
 
 ```bash
@@ -366,3 +407,4 @@ If you find this tool helpful:
 ---
 
 Made with ❤️ for web security and performance analysis
+
