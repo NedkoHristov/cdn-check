@@ -25,7 +25,7 @@ on:
       image_tag:
         description: 'Custom image tag (optional)'
         required: false
-        default: 'manual'
+        default: 'latest'
         type: string
 
 env:
@@ -169,3 +169,4 @@ jobs:
           publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
         env:
           SEMGREP_RULES: auto
+
